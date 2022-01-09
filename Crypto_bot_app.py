@@ -94,7 +94,7 @@ def rsi(df):
 
     rs=ema_up/ema_down
     df['RSI']=100-(100/(1+rs))
-    latest_rsi_values=(df['RSI'].iloc[-3:])
+    latest_rsi_values=(df['RSI'].iloc[-2:])
     return latest_rsi_values
 
 def mvg_avg(df):
@@ -103,22 +103,21 @@ def mvg_avg(df):
     df['ma13']=df['Closed'].rolling(window=13).mean()
     
 
-def calulate_entry_point(rsi_values):
+def calulate_entry_point(rsi_values, coin):
     df=pandas.DataFrame(rsi_values)
     
-    df['<30']=np.where(df['RSI']<47, True, False)
+    df['<30']=np.where(df['RSI']<55, True, False)
     df['raising?']=df['RSI'].is_monotonic
     example=set(df['<30'])
     example2=set(df['raising?'])
     print(df)
-    print(len(example2))
     if True in example and len(example2)==1:
         if True in example2:
-            print('entry')
-    print(example, example2) 
-
-
-
+            print(f'entry point for {coin}')
+            return True
+    
+def trailing_stop_loss(price):
+    pass
 
 rsi_dict={}
 while True:
@@ -132,7 +131,7 @@ while True:
         rsi_values=rsi(df)
         
         rsi_dict[item]=[rsi_values.iloc[-1]]
-        calulate_entry_point(rsi_values)
+        calulate_entry_point(rsi_values,item)
         
     rsi_df=pandas.DataFrame(rsi_dict)   
     print(rsi_df)
