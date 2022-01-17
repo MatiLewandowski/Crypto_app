@@ -14,11 +14,6 @@ BASE_URL='https://api.crypto.com/v2/'
 API_KEY = api
 SECRET_KEY = secret
 
-#Settings to edit - change coins/timeframe to be followed by this algorithm
-coins=['BTC_USDT','CRO_USDT','FTM_USDT','SHIB_USDT']
-time_frame='5m'
-
-
 #get a candle stick info - especially closing price
 def get_candle_stick(coins, time_frame):
     lista={}
@@ -32,7 +27,11 @@ def get_candle_stick(coins, time_frame):
     
     return lista
 
-
+def current_price(price_dictionary):
+    prices={}
+    for price in price_dictionary:
+        prices[price]=price_dictionary[price][-1]
+    return prices
 
 
 def get_account_summary(API_KEY,SECRET_KEY):
@@ -81,7 +80,6 @@ def get_account_summary(API_KEY,SECRET_KEY):
     return account_summary
 
 
-
 #calculate RSI to find the 'buy point'
 def rsi(df):
     
@@ -115,25 +113,19 @@ def calulate_entry_point(rsi_values, coin):
         if True in example2:
             print(f'entry point for {coin}')
             return True
-    
-def trailing_stop_loss(price):
-    pass
 
-rsi_dict={}
-while True:
-    lista=get_candle_stick(coins,time_frame)
-    for item in coins:
-        df=pandas.DataFrame({'Closed':lista[item]})
-        mvg_avg(df)
-        #print(df)
-        #zmienna=rsi(df)
-        #print(rsi(df).iloc[-1])
-        rsi_values=rsi(df)
-        
-        rsi_dict[item]=[rsi_values.iloc[-1]]
-        calulate_entry_point(rsi_values,item)
-        
-    rsi_df=pandas.DataFrame(rsi_dict)   
-    print(rsi_df)
+def calulcate_sell_point(buy_price, current_price):
+    stop_loss=0.98*buy_price # <2% below buy price then sell
+    profit_point=1.03*buy_price # >3% above buy price then sell
 
-    time.sleep(20)
+    if current_price>buy_price:
+        difference=current_price-buy_price
+        stop_loss+=difference
+
+    if current_price<=stop_loss:
+        return True
+
+    if current_price>=profit_point:
+        return True
+
+
